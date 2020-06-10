@@ -1,13 +1,22 @@
 import React from 'react';
 // import logo from './logo.svg';
 import './App.css';
-import { LineChart, Line } from 'recharts';
-const os = require('os-utils');
-var cpuPercent;
-os.cpuUsage((c) => {
-	console.log(c);
-	cpuPercent = c;
-})
+import {
+	BarChart
+	,Bar
+	,Line
+	,LineChart
+	,XAxis
+	,YAxis
+	,Tooltip
+} from 'recharts';
+// const os = require('os-utils');
+// var cpuPercent;
+// console.log(os.cpuCount())
+// os.cpuUsage((c) => {
+// 	console.log(c);
+// 	cpuPercent = c;
+// })
 
 const data = [
 	{name: 'Page A', uv: 400, pv: 2400, amt: 2400}
@@ -16,22 +25,41 @@ const data = [
 	,{name: 'Page B', uv: 200, pv: 2400, amt: 2400}
 	,{name: 'Page B', uv: 100, pv: 2400, amt: 2400}
 ];
-console.log("cpu", cpuPercent)
 class App extends React.Component {
   constructor(props) {
   	super(props);
   	this.state = {
-  		cpu: cpuPercent
+		memPCT: []
   	}
   }
+  componentDidMount() {
+	setInterval(() => {
+		fetch('/test')
+			.then(res => {
+				// console.log("val:", res.json());
+				return res.json()
+			}).then(memPercent => {
+				// console.log(memPercent);
+				this.setState((state) => {
+					if (state.memPCT.length < 5) {
+						return {memPCT: [...state.memPCT, memPercent]}
+					} else {
+						return {memPCT: [...state.memPCT.slice(state.memPCT.length - 4), memPercent]}
+					}
+				})
+			});
+		}, 1000);
+	}
   render() {
     return (
       <div id="wrapper">
 	      <h1>helloReact!</h1>
-		  <LineChart width={400} height={400} data={data}>
-		    <Line type="monotone" dataKey="uv" stroke="#8884d8" />
+		  <LineChart width={500} height={300} data={this.state.memPCT}>
+			<XAxis dataKey="name" />
+			<YAxis />
+			<Line dataKey="value" />
 		  </LineChart>
-		  <h1>CPU: {this.state.cpu}</h1>
+		  <h1>PageLookup: {JSON.stringify(this.state.memPCT)}</h1>
 	  </div>
     );
   }
