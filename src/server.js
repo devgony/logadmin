@@ -6,7 +6,7 @@ const sql = require('mssql');
 var config = {
 	"user": "LOGADMIN",
 	"password": "LABC123",
-	"server": "vmwindows"
+	"server": "localhost"
 }
 sql.connect(config, err => { 
     if(err){
@@ -32,6 +32,15 @@ app.get('/test', (req, res, next) => {
         let pagelookup = result.recordset[0].pagelookup
         pagelookup = pagelookup.slice(pagelookup.length-3)
         res.json({name: currentTime, value: pagelookup});
+    })
+})
+
+app.get('/active-sessions', (req, res, next) => {
+    new sql.Request().query(`SELECT SPID, STATUS, DB_NAME(S.DBID) DB_NAME, LOGINAME, HOSTNAME, BLOCKED, Q.TEXT, CMD, CPU, PHYSICAL_IO, LAST_BATCH, PROGRAM_NAME
+    FROM MASTER.DBO.SYSPROCESSES S OUTER APPLY SYS.DM_EXEC_SQL_TEXT(S.SQL_HANDLE) Q
+    WHERE 1=1
+    and status not in ('background','sleeping')`, (err, result) => {
+        res.json(result.recordset);
     })
 })
 

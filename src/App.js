@@ -1,5 +1,4 @@
 import React from 'react';
-// import logo from './logo.svg';
 import './App.css';
 import {
 	BarChart
@@ -10,44 +9,64 @@ import {
 	,YAxis
 	,Tooltip
 } from 'recharts';
-// const os = require('os-utils');
-// var cpuPercent;
-// console.log(os.cpuCount())
-// os.cpuUsage((c) => {
-// 	console.log(c);
-// 	cpuPercent = c;
-// })
+const controller = new AbortController();
+const signal = controller.signal;
 
-const data = [
-	{name: 'Page A', uv: 400, pv: 2400, amt: 2400}
-	,{name: 'Page B', uv: 600, pv: 2400, amt: 2400}
-	,{name: 'Page B', uv: 300, pv: 2400, amt: 2400}
-	,{name: 'Page B', uv: 200, pv: 2400, amt: 2400}
-	,{name: 'Page B', uv: 100, pv: 2400, amt: 2400}
-];
 class App extends React.Component {
   constructor(props) {
   	super(props);
   	this.state = {
 		memPCT: []
+		,activeSessions: ""
   	}
   }
   componentDidMount() {
-	setInterval(() => {
-		fetch('/test')
-			.then(res => {
-				// console.log("val:", res.json());
-				return res.json()
-			}).then(memPercent => {
-				// console.log(memPercent);
-				this.setState((state) => {
-					if (state.memPCT.length < 5) {
-						return {memPCT: [...state.memPCT, memPercent]}
+	this.intervalIdPerf = this.fetchAndSet();
+	this.intervalIdActiveSessions = this.fetchActiveSessions();
+	console.log(this.intervalIdPerf, this.intervalIdActiveSessions)
+	}
+	componentWillUnmount() {
+		clearInterval(this.intervalIdPerf);
+		clearInterval(this.intervalIdActiveSessions);
+	}
+	fetchAndSet() {
+		return setInterval(() => {
+			fetch('/test', { signal })
+				.then(res => {
+					return res.json()
+				}).then(resObj => {
+					this.setState((state) => {
+						if (state.memPCT.length < 5) {
+							return {memPCT: [...state.memPCT, resObj]}
+						} else {
+							return {memPCT: [...state.memPCT.slice(state.memPCT.length - 4), resObj]}
+						}
+					})
+				}).catch(err => {
+					if (err.name === 'AbortError') {
+					  console.log('Fetch aborted');
 					} else {
-						return {memPCT: [...state.memPCT.slice(state.memPCT.length - 4), memPercent]}
+					  console.error('Uh oh, an error!', err);
 					}
-				})
-			});
+				});
+		}, 1000);
+	}
+	fetchActiveSessions() {
+		return setInterval(() => {
+			fetch('/active-sessions', { signal })
+				.then(res => {
+					return res.json()
+				}).then(resObj => {
+					this.setState((state) => {
+						return {activeSessions: resObj}
+					})
+				}).catch(err => {
+					if (err.name === 'AbortError') {
+					  console.log('Fetch aborted');
+					} else {
+					  console.error('Uh oh, an error!', err);
+					}
+				});
 		}, 1000);
 	}
   render() {
@@ -59,7 +78,8 @@ class App extends React.Component {
 			<YAxis />
 			<Line dataKey="value" />
 		  </LineChart>
-		  <h1>PageLookup: {JSON.stringify(this.state.memPCT)}</h1>
+		  <p>activeSessions: {JSON.stringify(this.state.activeSessions)}</p>
+
 	  </div>
     );
   }
