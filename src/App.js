@@ -9,6 +9,8 @@ import {
 	,YAxis
 	,Tooltip
 } from 'recharts';
+import ReactTable from "react-table";
+import "react-table/react-table.css";
 const controller = new AbortController();
 const signal = controller.signal;
 
@@ -17,7 +19,7 @@ class App extends React.Component {
   	super(props);
   	this.state = {
 		memPCT: []
-		,activeSessions: ""
+		,activeSessions: []
   	}
   }
   componentDidMount() {
@@ -78,6 +80,33 @@ class App extends React.Component {
 			<YAxis />
 			<Line dataKey="value" />
 		  </LineChart>
+		  
+		  <ReactTable
+				data={this.state.activeSessions}
+				columns={[
+					{
+					columns: [
+						{Header: "SPID", accessor: "SPID"}
+						,{Header: "STATUS", accessor: "STATUS"}
+						,{Header: "DB_NAME", accessor: "DB_NAME"}
+						,{Header: "LOGINAME", accessor: "LOGINAME"}
+						,{Header: "HOSTNAME", accessor: "HOSTNAME"}
+						,{Header: "BLOCKED", accessor: "BLOCKED"}
+						,{Header: "Q.TEXT", accessor: "Q.TEXT"}
+						,{Header: "CMD", accessor: "CMD"}
+						,{Header: "CPU", accessor: "CPU"}
+						,{Header: "PHYSICAL_IO", accessor: "PHYSICAL_IO"}
+						,{Header: "LAST_BATCH", accessor: "LAST_BATCH"}
+						,{Header: "PROGRAM_NAME", accessor: "PROGRAM_NAME"}
+					]
+					}
+				]}
+				defaultPageSize={20}
+				style={{
+					height: "400px" // This will force the table body to overflow and scroll, since there is not enough room
+				}}
+				className="-striped -highlight"
+       	  />
 		  <p>activeSessions: {JSON.stringify(this.state.activeSessions)}</p>
 
 	  </div>
