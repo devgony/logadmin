@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Label,
 } from "recharts";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
@@ -18,47 +19,17 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      memPCT: [],
+      chartData: {},
       activeSessions: [],
     };
   }
   componentDidMount() {
     this.intervalIdPerf = this.fetchAndSet();
     this.intervalIdActiveSessions = this.fetchActiveSessions();
-    console.log(this.intervalIdPerf, this.intervalIdActiveSessions);
   }
   componentWillUnmount() {
     clearInterval(this.intervalIdPerf);
     clearInterval(this.intervalIdActiveSessions);
-  }
-  fetchAndSet() {
-    return setInterval(() => {
-      fetch("/test", { signal })
-        .then((res) => {
-          return res.json();
-        })
-        .then((resObj) => {
-          this.setState((state) => {
-            if (state.memPCT.length < 5) {
-              return { memPCT: [...state.memPCT, resObj] };
-            } else {
-              return {
-                memPCT: [
-                  ...state.memPCT.slice(state.memPCT.length - 4),
-                  resObj,
-                ],
-              };
-            }
-          });
-        })
-        .catch((err) => {
-          if (err.name === "AbortError") {
-            console.log("Fetch aborted");
-          } else {
-            console.error("Uh oh, an error!", err);
-          }
-        });
-    }, 1000);
   }
   fetchActiveSessions() {
     return setInterval(() => {
@@ -80,16 +51,62 @@ class App extends React.Component {
         });
     }, 1000);
   }
+  fetchAndSet() {
+    return setInterval(() => {
+      fetch("/test", { signal })
+        .then((res) => {
+          return res.json();
+        })
+        .then((resObj) => {
+          this.setState((state) => {
+            return { chartData: resObj };
+          });
+        })
+        .catch((err) => {
+          if (err.name === "AbortError") {
+            console.log("Fetch aborted");
+          } else {
+            console.error("Uh oh, an error!", err);
+          }
+        });
+    }, 1000);
+  }
   render() {
     return (
       <div id="wrapper">
         <h1>helloReact!</h1>
-        <LineChart width={500} height={300} data={this.state.memPCT}>
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Line dataKey="value" />
-        </LineChart>
-
+        <div id="chart-container">
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="cpu_sql"
+            chartData={this.state.chartData.cpu_sql}
+          />
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="page_lookups"
+            chartData={this.state.chartData.page_lookups}
+          />
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="batch_requests"
+            chartData={this.state.chartData.batch_requests}
+          />
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="page_reads"
+            chartData={this.state.chartData.page_reads}
+          />
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="active_sessions"
+            chartData={this.state.chartData.active_sessions}
+          />
+          <RenderLineChart
+            className="perf-chart"
+            chartTitle="locks"
+            chartData={this.state.chartData.locks}
+          />
+        </div>
         <ReactTable
           data={this.state.activeSessions}
           columns={[
@@ -98,25 +115,29 @@ class App extends React.Component {
                 {
                   Header: "SPID",
                   accessor: "SPID",
-                  headerStyle: {
-                    background: "blue",
-                    textAlign: "center",
-                    color: "darkorange",
-                    borderRadius: "5px",
-                    padding: "5px",
-                    border: "1px solid black",
-                    borderRight: "3px solid yellow",
-                    borderLeft: "3px solid yellow",
-                    borderTop: "3px solid yellow",
-                    borderBottom: "3px solid yellow",
-                  },
+                  // headerStyle: {
+                  //   background: "blue",
+                  //   textAlign: "center",
+                  //   color: "darkorange",
+                  //   borderRadius: "5px",
+                  //   padding: "5px",
+                  //   border: "1px solid black",
+                  //   borderRight: "3px solid yellow",
+                  //   borderLeft: "3px solid yellow",
+                  //   borderTop: "3px solid yellow",
+                  //   borderBottom: "3px solid yellow",
+                  // },
                 },
                 { Header: "STATUS", accessor: "STATUS" },
                 { Header: "DB_NAME", accessor: "DB_NAME" },
                 { Header: "LOGINAME", accessor: "LOGINAME" },
                 { Header: "HOSTNAME", accessor: "HOSTNAME" },
                 { Header: "BLOCKED", accessor: "BLOCKED" },
-                { Header: "Q.TEXT", accessor: "Q.TEXT" },
+                {
+                  Header: "TEXT",
+                  accessor: "TEXT",
+                  // style: { whiteSpace: "unset" },
+                },
                 { Header: "CMD", accessor: "CMD" },
                 { Header: "CPU", accessor: "CPU" },
                 { Header: "PHYSICAL_IO", accessor: "PHYSICAL_IO" },
@@ -127,11 +148,53 @@ class App extends React.Component {
           ]}
           defaultPageSize={20}
           style={{
-            height: "400px", // This will force the table body to overflow and scroll, since there is not enough room
+            height: "300px", // This will force the table body to overflow and scroll, since there is not enough room
           }}
           className="-striped -highlight"
         />
-        <p>activeSessions: {JSON.stringify(this.state.activeSessions)}</p>
+        {/* <p>activeSessions: {JSON.stringify(this.state.activeSessions)}</p> */}
+      </div>
+    );
+  }
+}
+
+class RenderLineChart extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      chartDataArray: [],
+    };
+  }
+  componentDidUpdate(nextProps) {
+    const { chartData } = this.props;
+    if (nextProps.chartData !== chartData) {
+      if (chartData) {
+        this.setState((state) => {
+          if (state.chartDataArray.length < 5) {
+            return {
+              chartDataArray: [...state.chartDataArray, this.props.chartData],
+            };
+          } else {
+            return {
+              chartDataArray: [
+                ...state.chartDataArray.slice(state.chartDataArray.length - 4),
+                this.props.chartData,
+              ],
+            };
+          }
+        });
+      }
+    }
+  }
+  render() {
+    return (
+      <div>
+        <h2>{this.props.chartTitle}</h2>
+        <LineChart width={500} height={200} data={this.state.chartDataArray}>
+          <XAxis dataKey="time"></XAxis>
+          <YAxis />
+          <Line dataKey="value" />
+        </LineChart>
       </div>
     );
   }

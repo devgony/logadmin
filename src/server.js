@@ -28,11 +28,30 @@ app.get("/", function (req, res) {
 app.get("/test", (req, res, next) => {
   let currentTime = new Date().toString().split(" ")[4];
   new sql.Request().query(
-    `select cntr_value as pagelookup from sys.dm_os_performance_counters s where counter_name like 'Page lookups/sec%'`,
+    `SELECT
+    --cpu_idle = record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int')
+    cpu_sql = record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int')
+    ,page_lookups = (select cntr_value from sys.dm_os_performance_counters where counter_name like 'Page lookups/sec%')
+    ,batch_requests = (select cntr_value from sys.dm_os_performance_counters where counter_name like 'Batch Requests/sec%')
+    ,page_reads = (select cntr_value from sys.dm_os_performance_counters where counter_name like 'Page reads/sec%')
+    ,active_sessions = (select count(*) from sys.sysprocesses where status not in ('background','sleeping'))
+    ,locks = (select count(*) FROM sys.dm_exec_connections AS blocking INNER JOIN sys.dm_exec_requests blocked ON blocking.session_id = blocked.blocking_session_id CROSS APPLY sys.dm_exec_sql_text(blocked.sql_handle) blocked_cache CROSS APPLY sys.dm_exec_sql_text(blocking.most_recent_sql_handle) blocking_cache INNER JOIN sys.dm_os_waiting_tasks waitstats ON waitstats.session_id = blocked.session_id)
+FROM (
+    SELECT TOP 1 CONVERT(XML, record) AS record
+    FROM sys.dm_os_ring_buffers
+    WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR'
+    AND record LIKE '% %'
+ORDER BY TIMESTAMP DESC
+) as cpu_usage`,
     (err, result) => {
-      let pagelookup = result.recordset[0].pagelookup;
-      pagelookup = pagelookup.slice(pagelookup.length - 3);
-      res.json({ name: currentTime, value: pagelookup });
+      let resData = {};
+      for (var key in result.recordset[0]) {
+        resData[key] = {
+          time: currentTime,
+          value: result.recordset[0][key],
+        };
+      }
+      res.json(resData);
     }
   );
 });
