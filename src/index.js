@@ -44,7 +44,7 @@ class Routers extends React.Component {
     // const { match, location, history } = this.props;
     // console.log("++++", match, location, history);
     return (
-      <div>
+      <div id="index-container">
         <Router>
           {this.state.isLogined ? (
             <Route path="/dashboard" component={App} />

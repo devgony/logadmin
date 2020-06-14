@@ -1,5 +1,6 @@
 import React from "react";
 import "../node_modules/gestalt/dist/gestalt.css";
+import "./login.css";
 import {
   Avatar,
   Box,
@@ -39,12 +40,12 @@ class Login extends React.Component {
     }
   }
   render() {
-    const { match, location, history } = this.props;
-    console.log("++++", match, location, history);
+    // const { match, location, history } = this.props;
+    // console.log("++++", match, location, history);
     return (
-      <div>
+      <div id="login-container">
         <Box maxWidth={200}>
-          <h1>This is Login</h1>
+          <h1 id="app-name">Logadmin</h1>
           <form onSubmit={this.handleSubmit}>
             <TextField
               id="name"
@@ -59,7 +60,9 @@ class Login extends React.Component {
               placeholder="password"
             />
             <Button color="red" type="submit" text="Login" />
-            {this.state.haveFailed ? <p>invalid user/password</p> : null}
+            {this.state.haveFailed ? (
+              <p id="login-error">invalid user/password</p>
+            ) : null}
           </form>
         </Box>
       </div>
