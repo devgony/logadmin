@@ -15,7 +15,7 @@ sql.connect(config, (err) => {
   console.log("Connection Successful !");
 });
 
-app.use(express.static(path.join(__dirname, "build")));
+app.use(express.static(path.join(__dirname)));
 
 app.get("/ping", function (req, res) {
   return res.send("pong");
