@@ -3,17 +3,34 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const app = express();
 const sql = require("mssql");
-var config = {
-  user: "LOGADMIN",
-  password: "LABC123",
-  server: "localhost",
-};
-sql.connect(config, (err) => {
-  if (err) {
-    throw err;
-  }
-  console.log("Connection Successful !");
-});
+const { errorMonitor } = require("events");
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+function runQuery(query) {
+  return sql.connect().then((pool) => {
+    return pool.query(query);
+  });
+}
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000",
+//     credentials: true,
+//   })
+// );
+
+// var config = {
+//   user: "LOGADMIN",
+//   password: "LABC123",
+//   server: "localhost",
+// };
+// sql.connect(config, (err) => {
+//   if (err) {
+//     throw err;
+//   }
+//   console.log("Connection Successful !");
+// });
 
 app.use(express.static(path.join(__dirname)));
 
@@ -25,10 +42,27 @@ app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
 
-app.get("/test", (req, res, next) => {
+app.post("/connect-config", (req, res, next) => {
+  console.log(req.body);
+  sql.connect(req.body, (err) => {
+    if (err) {
+      console.log("FAIL");
+      res.send("connection FAILED");
+      console.log(err);
+      sql.close();
+      // throw err;
+    } else {
+      res.send("CONNECTED");
+      console.log("Connection Successful!");
+    }
+  });
+  // res.status(201).json({ MSG: "Connection Successful !" });
+});
+
+app.get("/perf", (req, res, next) => {
   let currentTime = new Date().toString().split(" ")[4];
-  new sql.Request().query(
-    `SELECT
+  // new sql.Request().query(
+  runQuery(`SELECT
     --cpu_idle = record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int')
     cpu_sql = record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int')
     ,page_lookups = (select cntr_value from sys.dm_os_performance_counters where counter_name like 'Page lookups/sec%')
@@ -42,30 +76,28 @@ FROM (
     WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR'
     AND record LIKE '% %'
 ORDER BY TIMESTAMP DESC
-) as cpu_usage`,
-    (err, result) => {
-      let resData = {};
-      for (var key in result.recordset[0]) {
-        resData[key] = {
-          time: currentTime,
-          value: result.recordset[0][key],
-        };
-      }
-      res.json(resData);
+) as cpu_usage`).then((result) => {
+    let resData = {};
+    for (var key in result.recordset[0]) {
+      resData[key] = {
+        time: currentTime,
+        value: result.recordset[0][key],
+      };
     }
-  );
+    res.json(resData);
+  });
 });
 
 app.get("/active-sessions", (req, res, next) => {
-  new sql.Request().query(
-    `SELECT SPID, STATUS, DB_NAME(S.DBID) DB_NAME, LOGINAME, HOSTNAME, BLOCKED, Q.TEXT, CMD, CPU, PHYSICAL_IO, LAST_BATCH, PROGRAM_NAME
+  // new sql.Request().query(
+  runQuery(`SELECT SPID, STATUS, DB_NAME(S.DBID) DB_NAME, LOGINAME, HOSTNAME, BLOCKED, Q.TEXT, CMD, CPU, PHYSICAL_IO, LAST_BATCH, PROGRAM_NAME
     FROM MASTER.DBO.SYSPROCESSES S OUTER APPLY SYS.DM_EXEC_SQL_TEXT(S.SQL_HANDLE) Q
     WHERE 1=1
-    and status not in ('background','sleeping')`,
-    (err, result) => {
-      res.json(result.recordset);
-    }
-  );
+    and status not in ('background','sleeping')`).then((result) => {
+    res.json(result.recordset);
+  });
 });
+
+console.log("express is listening on 8080");
 
 app.listen(process.env.PORT || 8080);

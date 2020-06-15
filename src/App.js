@@ -54,7 +54,7 @@ class App extends React.Component {
   }
   fetchAndSet() {
     return setInterval(() => {
-      fetch("/test", { signal })
+      fetch("/perf", { signal })
         .then((res) => {
           return res.json();
         })

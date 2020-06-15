@@ -34,7 +34,7 @@ class Login extends React.Component {
     e.preventDefault();
     if (e.target.name.value === "admin" && e.target.password.value === "1") {
       this.props.makeLongin();
-      this.props.history.push("/dashboard");
+      this.props.history.push("/connect");
     } else {
       this.setState({ haveFailed: true });
     }

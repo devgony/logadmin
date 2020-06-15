@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import "./index.css";
 import App from "./App";
 import Login from "./Login";
+import Connect from "./Connect";
 import * as serviceWorker from "./serviceWorker";
 import {
   BrowserRouter as Router,
@@ -32,13 +33,18 @@ class Routers extends React.Component {
     super(props);
     this.state = {
       isLogined: false,
+      isConnected: false,
     };
     this.makeLongin = this.makeLongin.bind(this);
+    this.setServer = this.setServer.bind(this);
   }
   makeLongin() {
     this.setState((state) => ({
       isLogined: true,
     }));
+  }
+  setServer() {
+    this.setState({ isConnected: true });
   }
   render() {
     // const { match, location, history } = this.props;
@@ -47,7 +53,21 @@ class Routers extends React.Component {
       <div id="index-container">
         <Router>
           {this.state.isLogined ? (
-            <Route path="/dashboard" component={App} />
+            this.state.isConnected ? (
+              <Route path="/dashboard" component={App} />
+            ) : (
+              <div>
+                <Route
+                  path="/connect"
+                  render={(props) => (
+                    <Connect
+                      isConnected={this.state.isConnected}
+                      setServer={this.setServer}
+                    />
+                  )}
+                />
+              </div>
+            )
           ) : (
             <div>
               <Redirect exact from="/" to="/login" />
