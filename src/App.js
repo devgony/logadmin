@@ -139,7 +139,6 @@ class App extends React.Component {
                   {
                     Header: "TEXT",
                     accessor: "TEXT",
-                    // style: { whiteSpace: "unset" },
                   },
                   { Header: "CMD", accessor: "CMD" },
                   { Header: "CPU", accessor: "CPU" },
@@ -155,7 +154,6 @@ class App extends React.Component {
             }}
             className="-striped -highlight"
           />
-          {/* <p>activeSessions: {JSON.stringify(this.state.activeSessions)}</p> */}
           <Switch>
             <Route path="/next-page">
               <NextPage />

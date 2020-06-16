@@ -17,18 +17,7 @@ import {
   Redirect,
 } from "react-router-dom";
 
-// function pushHistory() {
-//   let history = useHistory();
-//   history.push("/dashboard")
-//   return history
-// }
-
 class Routers extends React.Component {
-  // static propTypes = {
-  //   match: PropTypes.object.isRequired,
-  //   location: PropTypes.object.isRequired,
-  //   history: PropTypes.object.isRequired,
-  // };
   constructor(props) {
     super(props);
     this.state = {
@@ -47,8 +36,6 @@ class Routers extends React.Component {
     this.setState({ isConnected: true });
   }
   render() {
-    // const { match, location, history } = this.props;
-    // console.log("++++", match, location, history);
     return (
       <div id="index-container">
         <Router>
@@ -77,7 +64,6 @@ class Routers extends React.Component {
                   <Login
                     isLogined={this.state.isLogined}
                     makeLongin={this.makeLongin}
-                    // location="/login"
                   />
                 )}
               />
@@ -88,10 +74,9 @@ class Routers extends React.Component {
     );
   }
 }
-// const ShowRouters = withRouter(Routers);
 
 ReactDOM.render(
-  <React.StrictMode>{<Routers location="/home" />}</React.StrictMode>,
+  <React.StrictMode>{<Routers />}</React.StrictMode>,
   document.getElementById("root")
 );
 

@@ -18,15 +18,11 @@ import {
   withRouter,
   Redirect,
 } from "react-router-dom";
-// import { ConnectionError } from "mssql";
 
 class Connect extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      // server: "",
-      // user: "",
-      // password: "",
       isConnected: false,
       isFailed: false,
     };
@@ -40,7 +36,6 @@ class Connect extends React.Component {
       user: e.target.user.value,
       password: e.target.password.value,
     };
-    // this.setState(configInfo);
     fetch("/connect-config", {
       method: "POST", // *GET, POST, PUT, DELETE, etc.
       headers: {
