@@ -10,6 +10,7 @@
     "express": "^4.17.1",
     "gestalt": "^3.0.2",
     "mssql": "^6.2.0",
+    "nodemon": "^2.0.4",
     "os-utils": "0.0.14",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -18,12 +19,26 @@
     "react-table": "^6.6.0",
     "recharts": "^1.8.5"
   },
+  "bundledDependencies": [
+    "express",
+    "gestalt",
+    "mssql",
+    "nodemon",
+    "os-utils",
+    "react",
+    "react-dom",
+    "react-router-dom",
+    "react-scripts",
+    "react-table",
+    "recharts"
+  ],
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "both": "concurrently \"node ./server.js\" \"npm react-scripts start\""
+    "both": "concurrently \"node ./server.js\" \"npm react-scripts start\"",
+    "startn": "nodemon index.js"
   },
   "eslintConfig": {
     "extends": "react-app"

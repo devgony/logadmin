@@ -13,3 +13,6 @@ function runQuery(query) {
 runQuery(`select 1`).then((result) => {
   console.log(result);
 });
+
+
+tar -zcvf modules.tar node_modules build package.json src

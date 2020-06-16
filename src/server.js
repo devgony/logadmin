@@ -13,34 +13,17 @@ function runQuery(query) {
     return pool.query(query);
   });
 }
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000",
-//     credentials: true,
-//   })
-// );
 
-// var config = {
-//   user: "LOGADMIN",
-//   password: "LABC123",
-//   server: "localhost",
-// };
-// sql.connect(config, (err) => {
-//   if (err) {
-//     throw err;
-//   }
-//   console.log("Connection Successful !");
-// });
-
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "..", "build")));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/ping", function (req, res) {
   return res.send("pong");
 });
 
-app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "../public", "index.html"));
-});
+// app.get("/", function (req, res) {
+//   res.sendFile(path.join(__dirname, "../build", "index.html"));
+// });
 
 app.post("/connect-config", (req, res, next) => {
   console.log(req.body);
@@ -56,7 +39,6 @@ app.post("/connect-config", (req, res, next) => {
       console.log("Connection Successful!");
     }
   });
-  // res.status(201).json({ MSG: "Connection Successful !" });
 });
 
 app.get("/perf", (req, res, next) => {
