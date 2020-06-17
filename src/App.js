@@ -1,5 +1,12 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  withRouter,
+  Prompt,
+} from "react-router-dom";
 import "./App.css";
 import {
   BarChart,
@@ -10,9 +17,21 @@ import {
   YAxis,
   Tooltip,
   Label,
+  ResponsiveContainer,
 } from "recharts";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  Heading,
+  Link as LinkStyle,
+  Text,
+  TextField,
+  Tabs,
+} from "gestalt";
 const controller = new AbortController();
 const signal = controller.signal;
 
@@ -22,13 +41,27 @@ class App extends React.Component {
     this.state = {
       chartData: {},
       activeSessions: [],
+      activeIndex: 0,
     };
+    this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange({ activeTabIndex, event }) {
+    event.preventDefault();
+    this.setState({ activeIndex: activeTabIndex });
   }
   componentDidMount() {
     this.intervalIdPerf = this.fetchAndSet();
     this.intervalIdActiveSessions = this.fetchActiveSessions();
   }
   componentWillUnmount() {
+    console.log("unmounted!");
+    fetch("/test", {
+      method: "POST", // *GET, POST, PUT, DELETE, etc.
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify("umounted!"),
+    });
     clearInterval(this.intervalIdPerf);
     clearInterval(this.intervalIdActiveSessions);
   }
@@ -75,9 +108,32 @@ class App extends React.Component {
   render() {
     return (
       <Router>
+        <Prompt message="You have unsaved changes, are you sure you want to leave?" />
         <div id="wrapper">
-          <h1>helloReact!</h1>
-          <Link to="/next-page">next-page</Link>
+          <div id="logo-container">
+            <h1>Logadmin</h1>
+          </div>
+          <div id="nav-container">
+            <Tabs
+              tabs={[
+                {
+                  text: "MAIN",
+                  href: "main",
+                },
+                {
+                  text: "CONNECT",
+                  href: "connect",
+                },
+                {
+                  text: "LOGOUT",
+                  href: "login",
+                },
+              ]}
+              activeTabIndex={this.state.activeIndex}
+              onChange={this.handleChange}
+              size="lg"
+            />
+          </div>
           <div id="chart-container">
             <RenderLineChart
               className="perf-chart"
@@ -110,50 +166,52 @@ class App extends React.Component {
               chartData={this.state.chartData.locks}
             />
           </div>
-          <ReactTable
-            data={this.state.activeSessions}
-            columns={[
-              {
-                columns: [
-                  {
-                    Header: "SPID",
-                    accessor: "SPID",
-                    // headerStyle: {
-                    //   background: "blue",
-                    //   textAlign: "center",
-                    //   color: "darkorange",
-                    //   borderRadius: "5px",
-                    //   padding: "5px",
-                    //   border: "1px solid black",
-                    //   borderRight: "3px solid yellow",
-                    //   borderLeft: "3px solid yellow",
-                    //   borderTop: "3px solid yellow",
-                    //   borderBottom: "3px solid yellow",
-                    // },
-                  },
-                  { Header: "STATUS", accessor: "STATUS" },
-                  { Header: "DB_NAME", accessor: "DB_NAME" },
-                  { Header: "LOGINAME", accessor: "LOGINAME" },
-                  { Header: "HOSTNAME", accessor: "HOSTNAME" },
-                  { Header: "BLOCKED", accessor: "BLOCKED" },
-                  {
-                    Header: "TEXT",
-                    accessor: "TEXT",
-                  },
-                  { Header: "CMD", accessor: "CMD" },
-                  { Header: "CPU", accessor: "CPU" },
-                  { Header: "PHYSICAL_IO", accessor: "PHYSICAL_IO" },
-                  { Header: "LAST_BATCH", accessor: "LAST_BATCH" },
-                  { Header: "PROGRAM_NAME", accessor: "PROGRAM_NAME" },
-                ],
-              },
-            ]}
-            defaultPageSize={20}
-            style={{
-              height: "300px", // This will force the table body to overflow and scroll, since there is not enough room
-            }}
-            className="-striped -highlight"
-          />
+          <div id="table-container">
+            <ReactTable
+              data={this.state.activeSessions}
+              columns={[
+                {
+                  columns: [
+                    {
+                      Header: "SPID",
+                      accessor: "SPID",
+                      // headerStyle: {
+                      //   background: "blue",
+                      //   textAlign: "center",
+                      //   color: "darkorange",
+                      //   borderRadius: "5px",
+                      //   padding: "5px",
+                      //   border: "1px solid black",
+                      //   borderRight: "3px solid yellow",
+                      //   borderLeft: "3px solid yellow",
+                      //   borderTop: "3px solid yellow",
+                      //   borderBottom: "3px solid yellow",
+                      // },
+                    },
+                    { Header: "STATUS", accessor: "STATUS" },
+                    { Header: "DB_NAME", accessor: "DB_NAME" },
+                    { Header: "LOGINAME", accessor: "LOGINAME" },
+                    { Header: "HOSTNAME", accessor: "HOSTNAME" },
+                    { Header: "BLOCKED", accessor: "BLOCKED" },
+                    {
+                      Header: "TEXT",
+                      accessor: "TEXT",
+                    },
+                    { Header: "CMD", accessor: "CMD" },
+                    { Header: "CPU", accessor: "CPU" },
+                    { Header: "PHYSICAL_IO", accessor: "PHYSICAL_IO" },
+                    { Header: "LAST_BATCH", accessor: "LAST_BATCH" },
+                    { Header: "PROGRAM_NAME", accessor: "PROGRAM_NAME" },
+                  ],
+                },
+              ]}
+              defaultPageSize={20}
+              style={{
+                height: "300px", // This will force the table body to overflow and scroll, since there is not enough room
+              }}
+              className="-striped -highlight"
+            />
+          </div>
           <Switch>
             <Route path="/next-page">
               <NextPage />
@@ -197,11 +255,13 @@ class RenderLineChart extends React.Component {
     return (
       <div>
         <h2>{this.props.chartTitle}</h2>
-        <LineChart width={500} height={200} data={this.state.chartDataArray}>
-          <XAxis dataKey="time"></XAxis>
-          <YAxis />
-          <Line dataKey="value" />
-        </LineChart>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart width={500} height={200} data={this.state.chartDataArray}>
+            <XAxis dataKey="time"></XAxis>
+            <YAxis />
+            <Line dataKey="value" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     );
   }
@@ -209,4 +269,4 @@ class RenderLineChart extends React.Component {
 function NextPage() {
   return <h1>nextPage</h1>;
 }
-export default App;
+export default withRouter(App);

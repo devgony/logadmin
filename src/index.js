@@ -23,6 +23,8 @@ class Routers extends React.Component {
     this.state = {
       isLogined: false,
       isConnected: false,
+      // isLogined: true,
+      // isConnected: true,
     };
     this.makeLongin = this.makeLongin.bind(this);
     this.setServer = this.setServer.bind(this);

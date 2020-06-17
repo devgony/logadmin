@@ -41,6 +41,10 @@ app.post("/connect-config", (req, res, next) => {
   });
 });
 
+app.post("/test", (req, res, next) => {
+  console.log(req.body);
+});
+
 app.get("/perf", (req, res, next) => {
   let currentTime = new Date().toString().split(" ")[4];
   // new sql.Request().query(
